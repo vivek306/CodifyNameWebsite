@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CodifyName</title>
+    <meta name="description" content="Let your name be the key" />
+    <meta name="keywords" content="cryptic fun, cryptology for fun, cyber fun, davinci code" />
+    <meta name="author" content="Vivek" />
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="css/demo.css" />
+    <link rel="stylesheet" type="text/css" href="css/component.css" />
+    <link rel="stylesheet" type="text/css" href="css/cs-select.css" />
+    <link rel="stylesheet" type="text/css" href="css/cs-skin-boxes.css" />
+    <link rel="stylesheet" type="text/css" href="css/vex.css" />
+    <link rel="stylesheet" type="text/css" href="css/vex-theme-flat-attack.css" />
+    <script src="js/modernizr.custom.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="fs-form-wrap" id="fs-form-wrap">
+            <div class="fs-title">
+                <h1>CodifyName <small><a href="https://github.com/vivek306">by Vivek</a></small></h1>
+                <div class="codrops-top">
+                    <a class="codrops-icon codrops-icon-info" href="#"><span>Convert your name to a top secret da-vinci key © 2017</span></a>
+                </div>
+            </div>
+            <form id="myform" class="fs-form fs-form-full" autocomplete="off">
+                <ol class="fs-fields">
+                    <li>
+                        <label class="fs-field-label fs-anim-upper" for="q1" data-info="This information will be your key to encode/decode">What's your name?</label>
+                        <input class="fs-anim-lower" id="q1" name="q1" type="text" placeholder="5 characters minimum" required min="" />
+                    </li>
+
+                    <li>
+                        <label class="fs-field-label fs-anim-upper" for="q2">What's the message?</label>
+                        <textarea class="fs-anim-lower" id="q2" name="q2" placeholder="Describe here"></textarea>
+                    </li>
+                    <li data-input-trigger>
+                        <label class="fs-field-label fs-anim-upper" for="q3">What do you want to do?</label>
+                        <div class="fs-radio-group fs-radio-custom clearfix fs-anim-lower">
+                            <span><input id="q3a" name="q3" type="radio" value="encode" checked /><label for="q3a" class="radio-padlock">Encode</label></span>
+                            <span><input id="q3b" name="q3" type="radio" value="decode" /><label for="q3b" class="radio-unlock">Decode</label></span>
+                        </div>
+                    </li>
+                </ol><!-- /fs-fields -->
+                <button class="fs-submit" onclick="submitForm();"  type="button">Convert</button>
+            </form><!-- /fs-form -->
+        </div><!-- /fs-form-wrap -->
+    </div><!-- /container -->
+    <script src="js/classie.js"></script>
+    <script src="js/selectFx.js"></script>
+    <script src="js/fullscreenForm.js"></script>
+    <script type="text/javascript" src="js/CodifyName.js"></script>
+    <script type="text/javascript" src="js/vex.combined.min.js"></script>
+    <script>
+        vex.defaultOptions.className = 'vex-theme-flat-attack';
+
+        var formWrap = document.getElementById('fs-form-wrap');
+
+        [].slice.call(document.querySelectorAll('select.cs-select')).forEach(function (el) {
+            new SelectFx(el, {
+                stickyPlaceholder: false,
+                onChange: function (val) {
+                    document.querySelector('span.cs-placeholder').style.backgroundColor = val;
+                }
+            });
+        });
+
+        var formItems = new FForm(formWrap, {
+            onReview: function () {
+                 classie.add(document.body, 'overview');
+            }
+        });
+
+
+        function copyToClipboard(text) {
+            if (window.clipboardData && window.clipboardData.setData) {
+                // IE specific code path to prevent textarea being shown while dialog is visible.
+                return clipboardData.setData("Text", text);
+
+            } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+                var textarea = document.createElement("textarea");
+                textarea.textContent = text;
+                textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in MS Edge.
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+                } catch (ex) {
+                    console.warn("Copy to clipboard failed.", ex);
+                    return false;
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+        }
+
+        function submitForm() {
+            var cnc = new CodifyNameJava();
+
+            // Get Key
+            var userKey = "";
+            var userKeyField = document.getElementById("q1");
+            userKey = userKeyField.value;
+
+            // Get Message
+            var userMessage = "";
+            var userMessageField = document.getElementById("q2");
+            userMessage = userMessageField.value;
+
+            // Get Method
+            var isEncode = true;
+            if (document.getElementById("q3b").checked)
+                isEncode = false;
+
+            var msg = cnc.CodifyName(userMessage, userKey, isEncode);
+
+            var displayMsg = msg;
+            if (isEncode & displayMsg.length > 10)
+                displayMsg = "Sorry the encoded message is too long for display but 'Copy to Clipboard' will have the encrypted message"
+
+            vex.dialog.buttons.YES.text = 'Copy and restart'
+            vex.dialog.confirm({
+                message: displayMsg,
+                callback: function (value) {
+                    if (value) {
+                        copyToClipboard(msg);
+                        window.location.reload();
+                    } else {
+                        console.log('Cancelled')
+                    }
+                }
+            })
+        }
+    </script>
+</body>
+</html>
